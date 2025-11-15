@@ -1,4 +1,4 @@
-﻿namespace Control_De_Tareas.Data.Entitys
+namespace Control_De_Tareas.Data.Entitys
 {
     public class Courses
     {
@@ -9,8 +9,9 @@
         public Guid InstructorId { get; set; }
         public string Estado { get; set; } = "Activo";
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        public bool IsSoftDeleted { get; set; } = false; // ✅ Agregado para soft delete
 
-    
+        // Navigation properties
         public Users? Instructor { get; set; }
         public ICollection<Tareas>? Tareas { get; set; }
     }

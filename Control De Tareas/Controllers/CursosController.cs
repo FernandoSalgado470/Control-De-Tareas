@@ -33,12 +33,13 @@ namespace Control_De_Tareas.Controllers
             {
                 var cursos = _context.Courses
                     .Include(c => c.Instructor)
+                    .Where(c => !c.IsSoftDeleted) // Filtrar cursos no eliminados
                     .Select(c => new CursoDto
                     {
                         Id = c.Id,
                         Codigo = c.Codigo,
                         Nombre = c.Nombre,
-                        InstructorNombre = c.Instructor.Instructor,
+                        InstructorNombre = c.Instructor != null ? c.Instructor.Instructor : "Sin instructor",
                         CantidadEstudiantes = 0,
                         Estado = c.Estado
                     })
@@ -71,6 +72,10 @@ namespace Control_De_Tareas.Controllers
         {
             if (ModelState.IsValid)
             {
+                curso.Id = Guid.NewGuid();
+                curso.FechaCreacion = DateTime.Now;
+                curso.IsSoftDeleted = false;
+                
                 _context.Courses.Add(curso);
                 _context.SaveChanges();
                 return RedirectToAction("Index");
@@ -84,7 +89,7 @@ namespace Control_De_Tareas.Controllers
         public IActionResult Editar(Guid id)
         {
             var curso = _context.Courses.Find(id);
-            if (curso == null)
+            if (curso == null || curso.IsSoftDeleted)
             {
                 return NotFound();
             }
@@ -113,7 +118,7 @@ namespace Control_De_Tareas.Controllers
         public IActionResult Eliminar(Guid id)
         {
             var curso = _context.Courses.Find(id);
-            if (curso == null)
+            if (curso == null || curso.IsSoftDeleted)
             {
                 return NotFound();
             }
