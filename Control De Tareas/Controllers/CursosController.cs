@@ -1,10 +1,16 @@
-﻿using Control_De_Tareas.Data.Entitys;
+using Control_De_Tareas.Data.Entitys;
 using Control_De_Tareas.Models;
+using Control_De_Tareas.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Control_De_Tareas.Controllers
 {
+    /// <summary>
+    /// Controller para gestión de cursos
+    /// Acceso: Profesores y Administradores
+    /// </summary>
+    [ProfesorOAdministradorAuthorize]
     public class CursosController : Controller
     {
         private Context _context;
@@ -16,13 +22,15 @@ namespace Control_De_Tareas.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Listar cursos - Profesores y Administradores
+        /// </summary>
         public IActionResult Index()
         {
             var viewModel = new CursosVm();
 
             try
             {
-               
                 var cursos = _context.Courses
                     .Include(c => c.Instructor)
                     .Select(c => new CursoDto
@@ -30,7 +38,7 @@ namespace Control_De_Tareas.Controllers
                         Id = c.Id,
                         Codigo = c.Codigo,
                         Nombre = c.Nombre,
-                        InstructorNombre=c.Instructor.Instructor,
+                        InstructorNombre = c.Instructor.Instructor,
                         CantidadEstudiantes = 0,
                         Estado = c.Estado
                     })
@@ -45,6 +53,87 @@ namespace Control_De_Tareas.Controllers
             }
 
             return View(viewModel);
+        }
+
+        /// <summary>
+        /// Crear curso - Profesores y Administradores
+        /// </summary>
+        public IActionResult Crear()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Crear curso (POST) - Profesores y Administradores
+        /// </summary>
+        [HttpPost]
+        public IActionResult Crear(Courses curso)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Courses.Add(curso);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(curso);
+        }
+
+        /// <summary>
+        /// Editar curso - Profesores y Administradores
+        /// </summary>
+        public IActionResult Editar(Guid id)
+        {
+            var curso = _context.Courses.Find(id);
+            if (curso == null)
+            {
+                return NotFound();
+            }
+            return View(curso);
+        }
+
+        /// <summary>
+        /// Editar curso (POST) - Profesores y Administradores
+        /// </summary>
+        [HttpPost]
+        public IActionResult Editar(Courses curso)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Courses.Update(curso);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(curso);
+        }
+
+        /// <summary>
+        /// Eliminar curso - SOLO Administradores
+        /// </summary>
+        [AdministradorAuthorize]
+        public IActionResult Eliminar(Guid id)
+        {
+            var curso = _context.Courses.Find(id);
+            if (curso == null)
+            {
+                return NotFound();
+            }
+            return View(curso);
+        }
+
+        /// <summary>
+        /// Eliminar curso (POST) - SOLO Administradores
+        /// </summary>
+        [HttpPost, ActionName("Eliminar")]
+        [AdministradorAuthorize]
+        public IActionResult ConfirmarEliminacion(Guid id)
+        {
+            var curso = _context.Courses.Find(id);
+            if (curso != null)
+            {
+                curso.IsSoftDeleted = true; // Soft delete
+                _context.SaveChanges();
+            }
+            return RedirectToAction("Index");
         }
     }
 }

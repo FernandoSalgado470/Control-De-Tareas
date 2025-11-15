@@ -1,7 +1,5 @@
 using Control_De_Tareas.Data.Entitys;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +9,26 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<Context>(options =>
       options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ============ CONFIGURACIÓN DE AUTENTICACIÓN Y AUTORIZACIÓN ============
+// Agregar autenticación por Cookies (necesario para el sistema de roles)
+builder.Services.AddAuthentication("CookieAuth")
+    .AddCookie("CookieAuth", options =>
+    {
+        options.LoginPath = "/Account/Login"; // Ruta al login (crear después)
+        options.AccessDeniedPath = "/Error/Error403"; // Ruta cuando no tiene permisos
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    });
+
+// Configurar políticas de autorización basadas en roles
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SoloAdministrador", policy => policy.RequireRole("Administrador"));
+    options.AddPolicy("SoloProfesor", policy => policy.RequireRole("Profesor"));
+    options.AddPolicy("SoloEstudiante", policy => policy.RequireRole("Estudiante"));
+    options.AddPolicy("ProfesorOAdministrador", policy => policy.RequireRole("Profesor", "Administrador"));
+    options.AddPolicy("UsuarioAutenticado", policy => policy.RequireAuthenticatedUser());
+});
 
 var app = builder.Build();
 
@@ -27,7 +45,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// ¡IMPORTANTE! La autenticación debe ir ANTES de la autorización
+app.UseAuthentication();
 app.UseAuthorization();
+
+// Manejar códigos de estado HTTP (como 403, 404)
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.MapControllerRoute(
     name: "default",
