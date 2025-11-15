@@ -6,10 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Control_De_Tareas.Controllers
 {
-    /// <summary>
-    /// Controller para gestión de cursos
-    /// Acceso: Profesores y Administradores
-    /// </summary>
+    
     [ProfesorOAdministradorAuthorize]
     public class CursosController : Controller
     {
@@ -22,9 +19,7 @@ namespace Control_De_Tareas.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Listar cursos - Profesores y Administradores
-        /// </summary>
+      
         public IActionResult Index()
         {
             var viewModel = new CursosVm();
@@ -56,17 +51,13 @@ namespace Control_De_Tareas.Controllers
             return View(viewModel);
         }
 
-        /// <summary>
-        /// Crear curso - Profesores y Administradores
-        /// </summary>
+       
         public IActionResult Crear()
         {
             return View();
         }
 
-        /// <summary>
-        /// Crear curso (POST) - Profesores y Administradores
-        /// </summary>
+       
         [HttpPost]
         public IActionResult Crear(Courses curso)
         {
@@ -83,9 +74,7 @@ namespace Control_De_Tareas.Controllers
             return View(curso);
         }
 
-        /// <summary>
-        /// Editar curso - Profesores y Administradores
-        /// </summary>
+        
         public IActionResult Editar(Guid id)
         {
             var curso = _context.Courses.Find(id);
@@ -96,9 +85,7 @@ namespace Control_De_Tareas.Controllers
             return View(curso);
         }
 
-        /// <summary>
-        /// Editar curso (POST) - Profesores y Administradores
-        /// </summary>
+        
         [HttpPost]
         public IActionResult Editar(Courses curso)
         {
@@ -111,9 +98,7 @@ namespace Control_De_Tareas.Controllers
             return View(curso);
         }
 
-        /// <summary>
-        /// Eliminar curso - SOLO Administradores
-        /// </summary>
+        
         [AdministradorAuthorize]
         public IActionResult Eliminar(Guid id)
         {
@@ -125,9 +110,7 @@ namespace Control_De_Tareas.Controllers
             return View(curso);
         }
 
-        /// <summary>
-        /// Eliminar curso (POST) - SOLO Administradores
-        /// </summary>
+        
         [HttpPost, ActionName("Eliminar")]
         [AdministradorAuthorize]
         public IActionResult ConfirmarEliminacion(Guid id)
@@ -135,7 +118,7 @@ namespace Control_De_Tareas.Controllers
             var curso = _context.Courses.Find(id);
             if (curso != null)
             {
-                curso.IsSoftDeleted = true; // Soft delete
+                curso.IsSoftDeleted = true; 
                 _context.SaveChanges();
             }
             return RedirectToAction("Index");
